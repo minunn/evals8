@@ -26,5 +26,6 @@ void PlaceShips(int shipNumberTemp);
 void DisplayBoard();
 void Shoot(int x, int y);
 void FreeBoard();
+void CheckForSink();
 
 #endif

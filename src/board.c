@@ -2,6 +2,7 @@
 #include "board.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <time.h>
 
 Board board;
 int boardSize;
@@ -43,6 +44,9 @@ bool CheckForShip(int x, int y){
 }
 
 void PlaceShips(int shipNumberTemp){
+
+    srand(time(0)); 
+
     shipNumber = shipNumberTemp;
     Ship* ships = (Ship*) malloc(sizeof(Ship)*shipNumber);
     if(ships == 0){
@@ -80,6 +84,13 @@ void PlaceShips(int shipNumberTemp){
                 Ship ship = {.x = x,.y = y,.isVertical = direction,.size=shipSize};
                 board.ships[i] = ship;
                 isPlaced = true;
+                /* DEBUG LINES
+                printf("x = %d",ship.x);
+                printf("y = %d",ship.y);
+                printf("size = %d",ship.size);
+                printf("vertical = %d",ship.isVertical);
+                printf("\n");
+                */
             }
         }
     }
@@ -89,27 +100,40 @@ void PlaceShips(int shipNumberTemp){
 void Shoot(int x, int y){
     if(CheckForShip(x,y)){
         board.grid[y][x] = STRUCK;
+        CheckForSink();
     } else {
         board.grid[y][x] = EMPTY;
     }
 }
 
 void CheckForSink(){
-    for (int i = 0; i < board.ships; i++)
+    for (int i = 0; i < shipNumber; i++)
     {
         bool isSunk = true;
         Ship ship = board.ships[i];
         for (int j = 0; j < ship.size; j++)
         {
-            if (ship.isVertical)
+            if (ship.isVertical && board.grid[ship.y+j][ship.x] != STRUCK)
             {
-                /* TODO */
+                isSunk = false;
+            } else if (!ship.isVertical && board.grid[ship.y][ship.x+j] != STRUCK){
+                isSunk = false;
             }
-            
         }
-        
+
+        if (isSunk)
+        {
+            for (int j = 0; j < ship.size; j++)
+            {
+                if (ship.isVertical)
+                {
+                    board.grid[ship.y+j][ship.x] = SUNK;
+                } else {
+                    board.grid[ship.y][ship.x+j] = SUNK;
+                }
+            }
+        }
     }
-    
 }
 
 void FreeBoard(){
@@ -122,7 +146,8 @@ void FreeBoard(){
 }
 
 void DisplayBoard(){
-    printf("\e[1;1H\e[2J");
+    //printf("\e[1;1H\e[2J");
+    printf("\n\n\n");
     for (int i = 0; i < boardSize; i++)
     {
         for (int j = 0; j < boardSize; j++)
